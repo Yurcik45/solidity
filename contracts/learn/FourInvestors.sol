@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: UNLICENSED
 
-//pragma solidity ^0.8.0;
+pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
 
@@ -16,7 +16,7 @@ contract FourInvestors {
         uint timestamp;
     }
     Sender[4] public senders;
-    uint8 count;
+    uint8 public count;
     constructor() {
         owner = msg.sender;
     }
@@ -37,6 +37,10 @@ contract FourInvestors {
         require(address(this).balance <= final_price, "Sum is enought");
         _;
     }
+    modifier sumNotEnought() {
+        require(address(this).balance == final_price, "Sum is NOT enought");
+        _;
+    }
     modifier alreadyPayed() {
        for(uint8 i; i < senders.length; i++) {
             require(senders[i].account != msg.sender, "You already payed :)");
@@ -45,7 +49,7 @@ contract FourInvestors {
     }
 
     function send() public checkSum(1000000000000000000) isNotOwner alreadyPayed sumEnought payable {
-        if (count == 4) {
+        if (count <= 3) {
             senders[count] = Sender(msg.sender, msg.value, block.timestamp);
             count++;
         } else {
@@ -55,7 +59,7 @@ contract FourInvestors {
     function checkBalance() public view returns(uint) {
         return address(this).balance;
     }
-    function getMoney(address payable _to) public isOwner sumEnought {
+    function getMoney(address payable _to) public isOwner sumNotEnought {
         _to.transfer(final_price);
     }
 }
