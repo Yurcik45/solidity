@@ -5,9 +5,9 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 
 contract FourInvestors {
-    // we have 4 investors
-    // which should donate need sum of money
-    // and ONLY then i can get this money
+    // We have fix final price, and fix amount of money
+    // Partners should send himself parts
+    // and ONLY then owner can send this money for any wallet
     uint64 constant private final_price = 4000000000000000000;
     address public owner;
     struct Sender {
@@ -47,20 +47,21 @@ contract FourInvestors {
         }
         _;
     }
+    modifier onlyCorrectAddress(address _to) {
+        require(_to = address(0), "incorrect address!");
+        _;
+    }
 
     function send() public checkSum(1000000000000000000) isNotOwner alreadyPayed sumEnought payable {
-        if (count <= 3) {
-            senders[count] = Sender(msg.sender, msg.value, block.timestamp);
-            count++;
-        } else {
-            count = 0;
-        }
+        senders[count] = Sender(msg.sender, msg.value, block.timestamp);
+        count++;
     }
     function checkBalance() public view returns(uint) {
         return address(this).balance;
     }
-    function getMoney(address payable _to) public isOwner sumNotEnought {
+    function getMoney(address payable _to) public onlyCorrectAddress(_to) isOwner sumNotEnought {
         _to.transfer(final_price);
+        count = 0;
     }
 }
 
